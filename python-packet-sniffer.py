@@ -1,37 +1,41 @@
 #!/usr/bin/python
 
+import datetime
 from scapy.all import *
 import socket
-import datetime
-import os
-import time
 
 def network_monitoring_for_visualization_version(pkt):
-	time=datetime.datetime.now()
-		#classifying packets into TCP
-	if pkt.haslayer(TCP):
-		# classyfying packets into TCP Incoming packets
-		if socket.gethostbyname(socket.gethostname())== pkt[192.168.1.10].dst:
-			print(str("[")+str(time)+str("]")+"  "+"TCP-IN:{}".format(len(pkt[TCP]))+" Bytes"+"    "+"SRC-MAC:" +str(pkt.src)+"    "+ "DST-MAC:"+str(pkt.dst)+"    "+ "SRC-PORT:"+str(pkt.sport)+"    "+"DST-PORT:"+str(pkt.dport)+"    "+"SRC-IP:"+str(pkt[IP].src  )+"    "+"DST-IP:"+str(pkt[IP].dst  ))
-	
-		if socket.gethostbyname(socket.gethostname())==pkt[192.168.1.10].src:
-			print(str("[")+str(time)+str("]")+"  "+"TCP-OUT:{}".format(len(pkt[TCP]))+" Bytes"+"    "+"SRC-MAC:" +str(pkt.src)+"    "+ "DST-MAC:"+str(pkt.dst)+"    "+ "SRC-PORT:"+str(pkt.sport)+"    "+"DST-PORT:"+str(pkt.dport)+"    "+"SRC-IP:"+str(pkt[IP].src)+"    "+"DST-IP:"+str(pkt[IP].dst))
-	#classifying packets into UDP	
-	if pkt.haslayer(UDP):
-		if socket.gethostbyname(socket.gethostname())==pkt[192.168.1.10].src:
-			# classyfying packets into UDP Outgoing packets
-			print(str("[")+str(time)+str("]")+"  "+"UDP-OUT:{}".format(len(pkt[UDP]))+" Bytes "+"    "+"SRC-MAC:" +str(pkt.src)+"    "+"DST-MAC:"+ str(pkt.dst)+"    "+"SRC-PORT:"+ str(pkt.sport) +"    "+"DST-PORT:"+ str(pkt.dport)+"    "+"SRC-IP:"+ str(pkt[IP].src)+"    "+"DST-IP:"+ str(pkt[IP].dst))
-	   
-		if socket.gethostbyname(socket.gethostname())==pkt[192.168.1.10].dst:
-			# classyfying packets into UDP Incoming packets
-			print(str("[")+str(time)+str("]")+"  "+"UDP-IN:{}".format(len(pkt[UDP]))+" Bytes "+"    "+"SRC-MAC:" +str(pkt.src)+"    "+"DST-MAC:"+ str(pkt.dst)+"    "+"SRC-PORT:"+ str(pkt.sport) +"    "+"DST-PORT:"+ str(pkt.dport)+"    "+"SRC-IP:"+ str(pkt[IP].src)+"    "+"DST-IP:"+ str(pkt[IP].dst))
-		#classifying packets into ICMP
-	if pkt.haslayer(ICMP):
-		# classyfying packets into UDP Incoming packets
-		if socket.gethostbyname(socket.gethostname())==pkt[192.168.1.10].src:
-			print(str("[")+str(time)+str("]")+"  "+"ICMP-OUT:{}".format(len(pkt[ICMP]))+" Bytes"+"    "+"IP-Version:"+str(pkt[IP].version) +"    "*1+" SRC-MAC:"+str(pkt.src)+"    "+"DST-MAC:"+str(pkt.dst)+"    "+"SRC-IP: "+str(pkt[IP].src)+ "    "+"DST-IP:  "+str(pkt[IP].dst))	
-							 
-		if socket.gethostbyname(socket.gethostname())==pkt[192.168.1.10].dst:
-			print(str("[")+str(time)+str("]")+"  "+"ICMP-IN:{}".format(len(pkt[ICMP]))+" Bytes"+"    "+"IP-Version:"+str(pkt[IP].version)+"    "*1+"	 SRC-MAC:"+str(pkt.src)+"    "+"DST-MAC:"+str(pkt.dst)+"    "+"SRC-IP: "+str(pkt[IP].src)+ "    "+"DST-IP:  "+str(pkt[IP].dst))	
+    time = datetime.datetime.now()  # Capture the current time
+
+    # Classify packets into TCP
+    if pkt.haslayer(TCP):
+        if socket.gethostbyname(socket.gethostname()) == pkt[IP].dst:
+            print_packet_info(time, "TCP-IN", pkt, len(pkt[TCP]))
+
+        if socket.gethostbyname(socket.gethostname()) == pkt[IP].src:
+            print_packet_info(time, "TCP-OUT", pkt, len(pkt[TCP]))
+
+    # Classify packets into UDP
+    if pkt.haslayer(UDP):
+        if socket.gethostbyname(socket.gethostname()) == pkt[IP].src:
+            print_packet_info(time, "UDP-OUT", pkt, len(pkt[UDP]))
+
+        if socket.gethostbyname(socket.gethostname()) ==pkt[IP].dst:
+            print_packet_info(time, "UDP-IN", pkt, len(pkt[UDP]))
+
+    # Classify packets into ICMP
+    if pkt.haslayer(ICMP):
+        if socket.gethostbyname(socket.gethostname()) == pkt[IP].src:
+            print_packet_info(time, "ICMP-OUT", pkt, len(pkt[ICMP]))
+
+        if socket.gethostbyname(socket.gethostname()) == pkt[IP].dst:
+            print_packet_info(time, "ICMP-IN",pkt, len(pkt[ICMP]))
+
+def print_packet_info(time, packet_type, pkt, size):
+    print(f"[{time}]  {packet_type}:{size} Bytes  "
+          f"SRC-MAC: {pkt.src}  DST-MAC: {pkt.dst}  "
+          f"SRC-PORT: {pkt.sport}  DST-PORT: {pkt.dport}  "
+          f"SRC-IP: {pkt[IP].src}  DST-IP: {pkt[IP].dst}")
+
 if __name__ == '__main__':
-	sniff(prn=network_monitoring_for_visualization_version)
+    sniff(prn=network_monitoring_for_visualization_version)
