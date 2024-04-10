@@ -1,41 +1,81 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
-import datetime
 from scapy.all import *
-import socket
+import os, datetime, socket, time
 
-def network_monitoring_for_visualization_version(pkt):
-    time = datetime.datetime.now()  # Capture the current time
+def packet_callback(packet):
+    timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+    src_mac = packet[Ether].src
+    dst_mac = packet[Ether].dst
 
-    # Classify packets into TCP
-    if pkt.haslayer(TCP):
-        if socket.gethostbyname(socket.gethostname()) == pkt[IP].dst:
-            print_packet_info(time, "TCP-IN", pkt, len(pkt[TCP]))
+    # Check if the packet has an IP layer
+    if packet.haslayer(IP):
+        src_ip = packet[IP].src
+        dst_ip = packet[IP].dst
 
-        if socket.gethostbyname(socket.gethostname()) == pkt[IP].src:
-            print_packet_info(time, "TCP-OUT", pkt, len(pkt[TCP]))
+        if packet.haslayer(TCP):
+            protocol = "TCP"
+            src_port = packet[TCP].sport
+            dst_port = packet[TCP].dport
 
-    # Classify packets into UDP
-    if pkt.haslayer(UDP):
-        if socket.gethostbyname(socket.gethostname()) == pkt[IP].src:
-            print_packet_info(time, "UDP-OUT", pkt, len(pkt[UDP]))
+            if packet[TCP].flags == 0x12: # SYN-ACK flag
+                if packet.getlayer(IP).src == "192.168.1.8": # replace with your machine's IP address
+                    direction = "Outgoing"
+                else:
+                    direction = "Incoming"
+            elif packet[TCP].flags == 0x02: # SYN flag
+                if packet.getlayer(IP).dst == "192.168.1.8": # replace with your machine's IP address
+                    direction = "Incoming"
+                else:
+                    direction = "Outgoing"
+            else:
+                direction = "Other"
 
-        if socket.gethostbyname(socket.gethostname()) ==pkt[IP].dst:
-            print_packet_info(time, "UDP-IN", pkt, len(pkt[UDP]))
+        elif packet.haslayer(UDP):
+            protocol = "UDP"
+            src_port = packet[UDP].sport
+            dst_port = packet[UDP].dport
 
-    # Classify packets into ICMP
-    if pkt.haslayer(ICMP):
-        if socket.gethostbyname(socket.gethostname()) == pkt[IP].src:
-            print_packet_info(time, "ICMP-OUT", pkt, len(pkt[ICMP]))
+            if packet[UDP].sport == 53: # DNS requests
+                if packet.getlayer(IP).src == "192.168.1.8": # replace with your machine's IP address
+                    direction = "Outgoing"
+                else:
+                    direction = "Incoming"
+            else:
+                direction = "Other"
 
-        if socket.gethostbyname(socket.gethostname()) == pkt[IP].dst:
-            print_packet_info(time, "ICMP-IN",pkt, len(pkt[ICMP]))
+        elif packet.haslayer(ICMP):
+            protocol = "ICMP"
+            src_port = packet[ICMP].src
+            dst_port = packet[ICMP].dst
 
-def print_packet_info(time, packet_type, pkt, size):
-    print(f"[{time}]  {packet_type}:{size} Bytes  "
-          f"SRC-MAC: {pkt.src}  DST-MAC: {pkt.dst}  "
-          f"SRC-PORT: {pkt.sport}  DST-PORT: {pkt.dport}  "
-          f"SRC-IP: {pkt[IP].src}  DST-IP: {pkt[IP].dst}")
+            if packet[ICMP].type == 8: # Echo request
+                if packet.getlayer(IP).src == "192.168.1.8": # replace with your machine's IP address
+                    direction = "Outgoing"
+                else:
+                    direction = "Incoming"
+            else:
+                direction = "Other"
 
-if __name__ == '__main__':
-    sniff(prn=network_monitoring_for_visualization_version)
+        else:
+            protocol = "Other"
+            src_port = ""
+            dst_port = ""
+            direction = "Other"
+
+    else:
+        protocol = "Other"
+        src_mac = packet[Ether].src
+        dst_mac = packet[Ether].dst
+        src_ip = "None"
+        dst_ip = "None"
+        src_port = ""
+        dst_port = ""
+        direction = "Other"
+
+    print(f"{timestamp} | {protocol} | {src_mac} | {dst_mac} | {src_ip} | {dst_ip} | {src_port} | {dst_port} | {direction}")
+
+    # Save packet to pcap file
+    wrpcap('captured_packets.pcap', packet)
+
+sniff(prn=packet_callback, filter="tcp or udp or icmp", store=0)
