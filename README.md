@@ -17,7 +17,7 @@ sudo apt install scapy
 git clone https://github.com/mihir02rAut/Rapid-Packet-Sniffing-with-Python-and-Scapy/
 ```
 ```
-cd Python-Scapy-Packet-Sniffer/
+cd Rapid-Packet-Sniffing-with-Python-and-Scapy/
 ```
 ```
 sudo python3 python-packet-sniffer.py
