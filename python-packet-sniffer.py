@@ -19,12 +19,12 @@ def packet_callback(packet):
             dst_port = packet[TCP].dport
 
             if packet[TCP].flags == 0x12: # SYN-ACK flag
-                if packet.getlayer(IP).src == "192.168.1.8": # replace with your machine's IP address
+                if packet.getlayer(IP).src == "192.168.227.92": # replace with your machine's IP address
                     direction = "Outgoing"
                 else:
                     direction = "Incoming"
             elif packet[TCP].flags == 0x02: # SYN flag
-                if packet.getlayer(IP).dst == "192.168.1.8": # replace with your machine's IP address
+                if packet.getlayer(IP).dst == "192.168.227.92": # replace with your machine's IP address
                     direction = "Incoming"
                 else:
                     direction = "Outgoing"
@@ -37,7 +37,7 @@ def packet_callback(packet):
             dst_port = packet[UDP].dport
 
             if packet[UDP].sport == 53: # DNS requests
-                if packet.getlayer(IP).src == "192.168.1.8": # replace with your machine's IP address
+                if packet.getlayer(IP).src == "192.168.227.92": # replace with your machine's IP address
                     direction = "Outgoing"
                 else:
                     direction = "Incoming"
@@ -50,7 +50,7 @@ def packet_callback(packet):
             dst_port = packet[ICMP].dst
 
             if packet[ICMP].type == 8: # Echo request
-                if packet.getlayer(IP).src == "192.168.1.8": # replace with your machine's IP address
+                if packet.getlayer(IP).src == "192.168.227.92": # replace with your machine's IP address
                     direction = "Outgoing"
                 else:
                     direction = "Incoming"
