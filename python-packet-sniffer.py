@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from scapy.all import *
-import os, datetime, socket, time
+import datetime
 
 def packet_callback(packet):
     timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
